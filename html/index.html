@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Student</title>
+</head>
+
+<body>
+    <h2>Update Student</h2>
+    <form id="responseMessage" action="http://localhost:8080/students/" method="POST">
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" required oninput="validateName()"><br>
+        <label for="age">Age:</label><br>
+        <input type="number" id="age" name="age" required><br><br>
+        <input type="submit" value="Update Student">
+    </form>
+    <script>
+        function validateName() {
+            var name = document.getElementById('name').value; 
+            if(!/^[a-zA-Z\s]+$/.test(name)){
+                alert('Name must be a string and connot conatin only numbers.'); 
+                return false; 
+            }
+            return true; 
+        }
+
+        document.querySelector("form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Construct the JSON payload
+            var payload = {
+                name: document.getElementById("name").value,
+                age: parseInt(document.getElementById("age").value, 10),
+            };
+
+            // Send the data as JSON
+            fetch('http://localhost:8080/students/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Attempt to parse JSON but handle cases where the response might not be JSON
+                        return response.json().then(data => {
+                            // Handle JSON data
+                            return { status: response.status, data };
+                        }).catch(error => {
+                            // If JSON parsing fails, return a default object or handle as you see fit
+                            return { status: response.status, data: {} };
+                        });
+                    } else {
+                        // If response is not OK, throw an error that will be caught by the catch block
+                        throw new Error('Network response was not ok.');
+                    }
+                })
+                .then(result => {
+                    // Use result.status to check the response status if needed
+                    document.getElementById("responseMessage").innerHTML = "You have successfully registered!";
+                    console.log(result.data); // Log the response data from the server
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("responseMessage").innerHTML = "An error occurred. Maybe student already exist.";
+                });
+        });
+    </script>
+
+</body>
+
+</html>
